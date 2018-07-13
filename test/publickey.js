@@ -351,7 +351,7 @@ describe('PublicKey', function() {
   describe('hashes', function() {
 
     // wif private key, address
-    // see: https://github.com/axerunners/axe/blob/master/src/test/key_tests.cpp#L20
+    // see: https://github.com/axepay/axe/blob/master/src/test/key_tests.cpp#L20
     var data = [
       ['7qh6LYnLN2w2ntz2wwUhRUEgkQ2j8XB16FGw77ZRDZmC29bn7cD', 'Xywgfc872nn5CKtpATCoAjZCc4v96pJczy'],
       ['7rve4MxeWFQHGbSYH6J2yaaZd3MBUqoDEwN6ZAZ6ZHmhTT4r3hW', 'XpmouUj9KKJ99ZuU331ZS1KqsboeFnLGgK'],

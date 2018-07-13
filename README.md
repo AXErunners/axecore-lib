@@ -9,7 +9,7 @@ A pure and powerful JavaScript AXE library.
 
 ## Principles
 
-AXE is a powerful new peer-to-peer platform for the next generation of financial technology. The decentralized nature of the AXE network allows for highly resilient axe infrastructure, and the developer community needs reliable, open-source tools to implement axe apps and services.
+AXE is a powerful new peer-to-peer platform for the next generation of financial technology. The decentralized nature of the AXE network allows for highly resilient AXE infrastructure, and the developer community needs reliable, open-source tools to implement AXE apps and services.
 
 ## Get Started
 ### NodeJS
@@ -24,28 +24,28 @@ See the section below to generate your own bundle, or download the pre-generated
 
 ## Docs
 
-* [Addresses](address.md)
-* [Block](block.md)
-* [Crypto](crypto.md)
-* [Encoding](encoding.md)
-* [Hierarchically-derived Private and Public Keys](hierarchical.md)
+* [Addresses](docs/address.md)
+* [Block](docs/block.md)
+* [Crypto](docs/crypto.md)
+* [Encoding](docs/encoding.md)
+* [Hierarchically-derived Private and Public Keys](docs/hierarchical.md)
 * [Networks](docs/networks.md)
 * [PrivateKey](docs/privatekey.md)
 * [PublicKey](docs/publickey.md)
 * [Script](docs/script.md)
 * [Transaction](docs/transaction.md)
-* [Using Different Units](unit.md)
-* [Unspent Output](docs/upspentoutput.md)
+* [Using Different Units](docs/unit.md)
+* [Unspent Output](docs/unspentoutput.md)
 * [URI](docs/uri.md)
-* [Governance Object / Proposal](govobject/govobject.md)
+* [Governance Object / Proposal](docs/govobject/govobject.md)
 
 ## Examples
 
-Some examples can be find [here](docs/examples.md), below is a list of direct link for some of them.
+Some examples can be found [here](docs/examples.md), below is a list of direct links for some of them.
 
 
 * [Generate a random address](docs/examples.md#generate-a-random-address)
-* [Generate a address from a SHA256 hash](docs/examples.md#generate-a-address-from-a-sha256-hash)
+* [Generate an address from a SHA256 hash](docs/examples.md#generate-a-address-from-a-sha256-hash)
 * [Import an address via WIF](docs/examples.md#import-an-address-via-wif)
 * [Create a Transaction](docs/examples.md#create-a-transaction)
 * [Sign a AXE message](docs/examples.md#sign-a-bitcoin-message)
@@ -60,11 +60,11 @@ Some functionality is implemented as a module that can be installed separately:
 
 * [Payment Protocol Support](https://github.com/axerunners/axecore-payment-protocol)
 * [Peer to Peer Networking](https://github.com/axerunners/axecore-p2p)
-* [Bitcoin Core JSON-RPC](https://github.com/axerunners/axed-rpc)
+* [AXE Core JSON-RPC](https://github.com/axerunners/axed-rpc)
 * [Payment Channels](https://github.com/axerunners/axecore-channel)
 * [Mnemonics](https://github.com/axerunners/axecore-mnemonic)
-* [Elliptical Curve Integrated Encryption Scheme](https://github.com/axerunners/axecore-ecies)
-* [Signed Messages](https://github.com/axerunners/axecore-message)
+* [Elliptical Curve Integrated Encryption Scheme](https://github.com/axerunners/bitcore-ecies-axe)
+* [Signed Messages](https://github.com/axerunners/bitcore-message-axe)
 
 ## Contributing
 
@@ -112,5 +112,6 @@ or run a test coverage report with `npm run coverage`.
 
 Code released under [the MIT license](LICENSE).
 
-Copyright 2013-2017 BitPay, Inc. Bitcore is a trademark maintained by BitPay, Inc.
-Copyright 2016-2018 The AXE Foundation, Inc.
+Copyright 2013-2017 BitPay, Inc. Bitcore is a trademark maintained by BitPay, Inc.  
+Copyright 2016-2017 The AXE Foundation, Inc.  
+Copyright 2017-2018 AXE Core Group, Inc.  

@@ -1,12 +1,12 @@
 {
   "name": "bitcore-lib-axe",
   "main": "./bitcore-lib-axe.min.js",
-  "version": "0.15.3",
+  "version": "0.15.6",
   "homepage": "https://github.com/axerunners/bitcore-lib-axe",
   "authors": [
     "AXE", "BitPay, Inc."
   ],
-  "description": "A pure, powerful core for your axe project.",
+  "description": "A pure, powerful core for your AXE project.",
   "moduleType": [
     "globals"
   ],
