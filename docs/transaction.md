@@ -1,9 +1,9 @@
 # Transaction
-AXEcore provides a very simple API for creating transactions. We expect this API to be accessible for developers without knowing the working internals of AXE in deep detail. What follows is a small introduction to transactions with some basic knowledge required to use this API.
+Axecore provides a very simple API for creating transactions. We expect this API to be accessible for developers without knowing the working internals of Axe in deep detail. What follows is a small introduction to transactions with some basic knowledge required to use this API.
 
 A Transaction contains a set of inputs and a set of outputs. Each input contains a reference to another transaction's output, and a signature that allows the value referenced in that output to be used in this transaction.
 
-Note also that an output can be used only once. That's why there's a concept of "change address" in the AXE ecosystem: if an output of 10 AXE is available for me to spend, but I only need to transmit 1 AXE, I'll create a transaction with two outputs, one with 1 AXE that I want to spend, and the other with 9 AXE to a change address, so I can spend this 9 AXE with another private key that I own.
+Note also that an output can be used only once. That's why there's a concept of "change address" in the Axe ecosystem: if an output of 10 AXE is available for me to spend, but I only need to transmit 1 AXE, I'll create a transaction with two outputs, one with 1 AXE that I want to spend, and the other with 9 AXE to a change address, so I can spend this 9 AXE with another private key that I own.
 
 So, in order to transmit a valid transaction, you must know what other transactions on the network store outputs that have not been spent and that are available for you to spend (meaning that you have the set of keys that can validate you own those funds). The unspent outputs are usually referred to as "utxo"s.
 
@@ -75,15 +75,15 @@ transaction.applySignature(receivedSig);
 ```
 
 ## Adding inputs
-Transaction inputs are instances of either [Input](lib/transaction/input) or its subclasses. `Input` has some abstract methods, as there is no actual concept of a "signed input" in the AXE scripting system (just valid signatures for <tt>OP_CHECKSIG</tt> and similar opcodes). They are stored in the `input` property of `Transaction` instances.
+Transaction inputs are instances of either [Input](lib/transaction/input) or its subclasses. `Input` has some abstract methods, as there is no actual concept of a "signed input" in the Axe scripting system (just valid signatures for <tt>OP_CHECKSIG</tt> and similar opcodes). They are stored in the `input` property of `Transaction` instances.
 
-AXEcore contains two implementations of `Input`, one for spending _Pay to Public Key Hash_ outputs (called `PublicKeyHashInput`) and another to spend _Pay to Script Hash_ outputs for which the redeem script is a Multisig script (called `MultisigScriptHashInput`).
+Axecore contains two implementations of `Input`, one for spending _Pay to Public Key Hash_ outputs (called `PublicKeyHashInput`) and another to spend _Pay to Script Hash_ outputs for which the redeem script is a Multisig script (called `MultisigScriptHashInput`).
 
 All inputs have the following five properties:
 - `prevTxId`: a `Buffer` with the id of the transaction with the output this input is spending
 - `outputIndex`: a `number` the index of the output in the previous transaction
 - `sequenceNumber`: a `number`, the sequence number, see [bitcoin's developer guide on nLockTime and the sequence number](https://bitcoin.org/en/developer-guide#locktime-and-sequence-number).
-- `script`: the `Script` instance for this input. Usually called `scriptSig` in the AXE community.
+- `script`: the `Script` instance for this input. Usually called `scriptSig` in the Axe community.
 - `output`: if available, a `Output` instance of the output associated with this input.
 
 Both `PublicKeyHashInput` and `MultisigScriptHashInput` cache the information about signatures, even though this information could somehow be encoded in the script. Both need to have the `output` property set in order to calculate the `sighash` so signatures can be created.
@@ -132,18 +132,18 @@ There are a series of methods used for serialization:
 - `toString` or `uncheckedSerialize`: Returns an hexadecimal serialization of the transaction, in the [serialization format for Bitcoin](https://bitcoin.org/en/developer-reference#raw-transaction-format).
 - `serialize`: Does a series of checks before serializing the transaction
 - `inspect`: Returns a string with some information about the transaction (currently a string formatted as `<Transaction 000...000>`, that only shows the serialized value of the transaction.
-- `toBuffer`: Serializes the transaction for sending over the wire in the AXE network
+- `toBuffer`: Serializes the transaction for sending over the wire in the Axe network
 - `toBufferWriter`: Uses an already existing BufferWriter to copy over the serialized transaction
 
 ## Serialization Checks
-When serializing, the AXEcore library performs a series of checks. These can be disabled by providing an object to the `serialize` method with the checks that you'll like to skip.
+When serializing, the Axecore library performs a series of checks. These can be disabled by providing an object to the `serialize` method with the checks that you'll like to skip.
 - `disableLargeFees` avoids checking that the fee is no more than `Transaction.FEE_PER_KB * Transaction.FEE_SECURITY_MARGIN * size_in_kb`.
 - `disableSmallFees` avoids checking that the fee is less than `Transaction.FEE_PER_KB * size_in_kb / Transaction.FEE_SECURITY_MARGIN`.
 - `disableIsFullySigned` does not check if all inputs are fully signed
 - `disableDustOutputs` does not check for dust outputs being generated
 - `disableMoreOutputThanInput` avoids checking that the sum of the output amounts is less than or equal to the sum of the amounts for the outputs being spent in the transaction
 
-These are the current default values in the AXEcore library involved on these checks:
+These are the current default values in the Axecore library involved on these checks:
 - `Transaction.FEE_PER_KB`: `10000` (satoshis per kilobyte)
 - `Transaction.FEE_SECURITY_MARGIN`: `15`
 - `Transaction.DUST_AMOUNT`: `546` (satoshis)
@@ -161,9 +161,9 @@ For this reason, some methods in the Transaction class are provided:
 Internally, a `_changeIndex` property stores the index of the change output (so it can get updated when a new input or output is added).
 
 ## Time-Locking transaction
-All AXE transactions contain a locktime field. The locktime indicates the earliest time a transaction can be added to the blockchain. Locktime allows signers to create time-locked transactions which will only become valid in the future, giving the signers a chance to change their minds. Locktime can be set in the form of a AXE block height (the transaction can only be included in a block with a higher height than specified) or a Linux timestamp (transaction can only be confirmed after that time). For more information see [Bitcoin's development guide section on locktime](https://bitcoin.org/en/developer-guide#locktime-and-sequence-number).
+All Axe transactions contain a locktime field. The locktime indicates the earliest time a transaction can be added to the blockchain. Locktime allows signers to create time-locked transactions which will only become valid in the future, giving the signers a chance to change their minds. Locktime can be set in the form of a Axe block height (the transaction can only be included in a block with a higher height than specified) or a Linux timestamp (transaction can only be confirmed after that time). For more information see [Bitcoin's development guide section on locktime](https://bitcoin.org/en/developer-guide#locktime-and-sequence-number).
 
-In AXEcore, you can set a `Transaction`'s locktime by using the methods `Transaction#lockUntilDate` and `Transaction#lockUntilBlockHeight`. You can also get a friendly version of the locktime field via `Transaction#getLockTime`;
+In Axecore, you can set a `Transaction`'s locktime by using the methods `Transaction#lockUntilDate` and `Transaction#lockUntilBlockHeight`. You can also get a friendly version of the locktime field via `Transaction#getLockTime`;
 
 For example:
 

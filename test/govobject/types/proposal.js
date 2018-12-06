@@ -149,12 +149,12 @@ describe('Proposal', function() {
     var proposal2 = new Proposal();
     proposal2.network = 'livenet';
     proposal2.end_epoch = endDate;
-    proposal2.name = 'Proposal-36-AXEATM';
+    proposal2.name = 'Proposal-36-AxeATM';
     proposal2.payment_address = '7Z7X2jaqMtzsr2oHpSn89cNaEC16DYByz3';
     proposal2.payment_amount = 1625.487;
     proposal2.start_epoch = startDate;
     proposal2.type = 1;
-    proposal2.url = "https://www.axecentral.org/p/Proposal-36-AXEATM";
+    proposal2.url = "https://www.axecentral.org/p/Proposal-36-AxeATM";
 
     expect(function() {
       return proposal.serialize();

@@ -1,11 +1,11 @@
 # Networks
-AXEcore provides support for the main AXE network as well as for `testnet3`, the current test blockchain. We encourage the use of `Networks.livenet` and `Networks.testnet` as constants. Note that the library sometimes may check for equality against this object. Please avoid creating a deep copy of this object.
+Axecore provides support for the main Axe network as well as for `testnet3`, the current test blockchain. We encourage the use of `Networks.livenet` and `Networks.testnet` as constants. Note that the library sometimes may check for equality against this object. Please avoid creating a deep copy of this object.
 
-The `Network` namespace has a function, `get(...)` that returns an instance of a `Network` or `undefined`. The only argument to this function is some kind of identifier of the network: either its name, a reference to a Network object, or a number used as a magic constant to identify the network (for example, the value `0x4c` that gives AXE addresses the distinctive `'X'` at its beginning on livenet, is a `0x8c` for testnet).
+The `Network` namespace has a function, `get(...)` that returns an instance of a `Network` or `undefined`. The only argument to this function is some kind of identifier of the network: either its name, a reference to a Network object, or a number used as a magic constant to identify the network (for example, the value `0x4c` that gives Axe addresses the distinctive `'X'` at its beginning on livenet, is a `0x8c` for testnet).
 
 ## Regtest
 
-The regtest network is useful for development as it's possible to programmatically and instantly generate blocks for testing. It's currently supported as a variation of testnet. Here is an example of how to use regtest with the AXEcore Library:
+The regtest network is useful for development as it's possible to programmatically and instantly generate blocks for testing. It's currently supported as a variation of testnet. Here is an example of how to use regtest with the Axecore Library:
 
 ```js
 // Standard testnet
@@ -31,13 +31,13 @@ var livenet = new Network();
 _.extend(livenet, {
   name: 'livenet',
   alias: 'mainnet',
-  pubkeyhash: 0x4c,
+  pubkeyhash: 0x37,
   privatekey: 0xcc,
   scripthash: 0x10,
   xpubkey: 0x488b21e,
   xprivkey: 0x488ade4,
-  networkMagic: 0xbf0c6bbd,
-  port: 9999,
+  networkMagic: 0xb5ce6b04,
+  port: 9937,
 });
 
 var testnet = new Network();
@@ -49,6 +49,6 @@ _.extend(testnet, {
   scripthash: 0x13,
   xpubkey: 0x43587cf,
   xprivkey: 0x04358394,
-  port:19999
+  port:19937
 });
 ```

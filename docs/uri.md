@@ -1,5 +1,5 @@
-# AXE URIs
-Represents a AXE payment URI. AXE URI strings is a good standard to share payment request, sometimes as a AXE link or using a QR code.
+# Axe URIs
+Represents a Axe payment URI. Axe URI strings is a good standard to share payment request, sometimes as a Axe link or using a QR code.
 
 URI Examples:
 
@@ -10,7 +10,7 @@ axe:XuUGDZHrKLo841CyamDbG5W7n59epA71h2?amount=1.2&message=Payment&label=Satoshi&
 ```
 
 ## URI Validation
-The main use that we expect you'll have for the `URI` class in AXEcore is validating and parsing AXE URIs. A `URI` instance exposes the address as a AXEcore `Address` object and the amount in satoshis, if present.
+The main use that we expect you'll have for the `URI` class in Axecore is validating and parsing Axe URIs. A `URI` instance exposes the address as a Axecore `Address` object and the amount in satoshis, if present.
 
 The code for validating URIs looks like this:
 
