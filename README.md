@@ -30,7 +30,7 @@ See the section below to generate your own bundle, or download the pre-generated
 
 To build a axecore-lib full bundle for the browser:
 
-```sh
+```
 npm run build
 ```
 
@@ -63,7 +63,7 @@ Some functionality is implemented as a module that can be installed separately:
 
 ### Development & Tests
 
-```sh
+```
 git clone https://github.com/axerunners/axecore-lib
 cd axecore-lib
 npm install
@@ -71,7 +71,7 @@ npm install
 
 Run all the tests:
 
-```sh
+```
 npm test
 ```
 
@@ -117,5 +117,6 @@ Please send pull requests for bug fixes, code optimization, and ideas for improv
 Code released under [the MIT license](LICENSE).
 
 Copyright 2013-2017 BitPay, Inc. Bitcore is a trademark maintained by BitPay, Inc.  
-Copyright 2016-2017 The Axe Foundation, Inc.  
-Copyright 2017-2018 Axe Core Group, Inc.  
+Copyright 2016-2017 The Dash Foundation, Inc.    
+Copyright 2017-2018 Dash Core Group, Inc.  
+Copyright 2018 AXErunners.  
