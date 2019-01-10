@@ -1,5 +1,0 @@
-./node_modules/*
-bitcore-lib-axe.js
-bitcore-lib-axe.min.js
-./test/*
-./dist/*
