@@ -30,7 +30,7 @@ See the section below to generate your own bundle, or download the pre-generated
 
 To build a axecore-lib full bundle for the browser:
 
-```
+```sh
 npm run build
 ```
 
@@ -63,7 +63,7 @@ Some functionality is implemented as a module that can be installed separately:
 
 ### Development & Tests
 
-```
+```sh
 git clone https://github.com/axerunners/axecore-lib
 cd axecore-lib
 npm install
@@ -71,7 +71,7 @@ npm install
 
 Run all the tests:
 
-```
+```sh
 npm test
 ```
 
@@ -101,7 +101,7 @@ Some examples can be found [here](docs/examples.md), below is a list of direct l
 * [Generate a random address](docs/examples.md#generate-a-random-address)
 * [Generate an address from a SHA256 hash](docs/examples.md#generate-a-address-from-a-sha256-hash)
 * [Import an address via WIF](docs/examples.md#import-an-address-via-wif)
-* [Create an Transaction](docs/examples.md#create-a-transaction)
+* [Create a Transaction](docs/examples.md#create-a-transaction)
 * [Sign an AXE message](docs/examples.md#sign-a-bitcoin-message)
 * [Verify an AXE message](docs/examples.md#verify-a-bitcoin-message)
 * [Create an OP RETURN transaction](docs/examples.md#create-an-op-return-transaction)
@@ -117,6 +117,6 @@ Please send pull requests for bug fixes, code optimization, and ideas for improv
 Code released under [the MIT license](LICENSE).
 
 Copyright 2013-2017 BitPay, Inc. Bitcore is a trademark maintained by BitPay, Inc.  
-Copyright 2016-2017 The Dash Foundation, Inc.    
+Copyright 2016-2017 The Dash Foundation, Inc.  
 Copyright 2017-2018 Dash Core Group, Inc.  
 Copyright 2018 AXErunners.  
