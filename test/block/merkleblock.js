@@ -1,3 +1,6 @@
+/* eslint-disable */
+// TODO: Remove previous line and work through linting issues at next edit
+
 'use strict';
 
 var should = require('chai').should();
@@ -172,7 +175,7 @@ describe('MerkleBlock', function() {
 
     it('should not find non-existant Transaction object', function() {
       // Reuse another transaction already in data/ dir
-      var serialized = transactionVector[0][7];
+      var serialized = transactionVector[0][9];
       var tx = new Transaction().fromBuffer(new Buffer(serialized, 'hex'));
       var b = MerkleBlock(data.JSON[0]);
       b.hasTransaction(tx).should.equal(false);

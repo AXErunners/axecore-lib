@@ -1,3 +1,6 @@
+/* eslint-disable */
+// TODO: Remove previous line and work through linting issues at next edit
+
 'use strict';
 
 var bitcore = module.exports;
@@ -36,6 +39,7 @@ bitcore.util = {};
 bitcore.util.buffer = require('./lib/util/buffer');
 bitcore.util.js = require('./lib/util/js');
 bitcore.util.preconditions = require('./lib/util/preconditions');
+bitcore.util.hashUtil = require('./lib/util/hashutil');
 
 // errors thrown by the library
 bitcore.errors = require('./lib/errors');
@@ -44,6 +48,8 @@ bitcore.errors = require('./lib/errors');
 bitcore.Address = require('./lib/address');
 bitcore.Block = require('./lib/block');
 bitcore.MerkleBlock = require('./lib/block/merkleblock');
+bitcore.SimplifiedMNListDiff = require('./lib/deterministcmnlist/SimplifiedMNListDiff');
+bitcore.SimplifiedMNListEntry = require('./lib/deterministcmnlist/SimplifiedMNListEntry');
 bitcore.BlockHeader = require('./lib/block/blockheader');
 bitcore.HDPrivateKey = require('./lib/hdprivatekey.js');
 bitcore.HDPublicKey = require('./lib/hdpublickey.js');
@@ -56,7 +62,8 @@ bitcore.Transaction = require('./lib/transaction');
 bitcore.GovObject = require('./lib/govobject');
 bitcore.URI = require('./lib/uri');
 bitcore.Unit = require('./lib/unit');
-bitcore.Message = require('./lib/message')
+bitcore.Message = require('./lib/message');
+bitcore.Mnemonic = require('./lib/mnemonic');
 
 // dependencies, subject to change
 bitcore.deps = {};

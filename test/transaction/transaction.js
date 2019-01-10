@@ -1,3 +1,6 @@
+/* eslint-disable */
+// TODO: Remove previous line and work through linting issues at next edit
+
 'use strict';
 
 /* jshint unused: false */
@@ -15,9 +18,11 @@ var Output = bitcore.Transaction.Output;
 var PrivateKey = bitcore.PrivateKey;
 var Script = bitcore.Script;
 var Address = bitcore.Address;
-var Networks = bitcore.Networks;
 var Opcode = bitcore.Opcode;
 var errors = bitcore.errors;
+var Payload = bitcore.Transaction.Payload;
+var SubTxRegisterPayload = Payload.SubTxRegisterPayload;
+var RegisteredTransactionTypes = Payload.constants.registeredTransactionTypes;
 
 var transactionVector = require('../data/tx_creation');
 
@@ -28,11 +33,12 @@ describe('Transaction', function() {
     transaction.uncheckedSerialize().should.equal(tx_1_hex);
   });
 
-  it('should parse the version as a signed integer', function () {
-    var transaction = Transaction('ffffffff0000ffffffff')
-    transaction.version.should.equal(-1);
-    transaction.nLockTime.should.equal(0xffffffff);
-  });
+  // It's not possible to have a signed integer as a version after DIP2 activation
+  // it('should parse the version as a signed integer', function () {
+  //   var transaction = Transaction('ffffffff0000ffffffff');
+  //   transaction.version.should.equal(-1);
+  //   transaction.nLockTime.should.equal(0xffffffff);
+  // });
 
   it('fails if an invalid parameter is passed to constructor', function() {
     expect(function() {
@@ -174,6 +180,38 @@ describe('Transaction', function() {
     transaction.uncheckedSerialize().should.equal(tx_1_hex);
   });
 
+  it('should autofill version field if nothing passed to constructor', function () {
+    var testKey = 'cNfg1KdmEXySkwK5XyydmgoKLbMaCiRyqPEtXZPw1aq8XMd5U5GF';
+    var testName = 'test';
+    var transaction = new Transaction({
+      type: Transaction.TYPES.TRANSACTION_SUBTX_REGISTER,
+      outputs: [
+        {
+          satoshis: 18492520000,
+          script: '76a914fa1e0abfb8d26e494375f47e04b4883c44dd44d988ac'
+        }
+      ],
+    }).from({
+        "txid": "40b9d99ff299082f3bb3a92e879ece6667c12b8d71e2b85f66487fa6b0ae1bf9",
+        "vout": 0,
+        "address": "yZaKKq7TZf7pqmNNVvMG5Uhwpf2ZgjmyYF",
+        "scriptPubKey": "21029b3a2cd74b9dfc543ccd18a571332dd557400b85ff999decff1e5f7275a44690ac",
+        "amount": 500.00000000,
+        "confirmations": 185,
+        "spendable": true,
+        "solvable": true,
+        "ps_rounds": -2
+      });
+    transaction.extraPayload
+      .setUserName(testName)
+      .setPubKeyIdFromPrivateKey(testKey)
+      .sign(testKey);
+
+    expect(transaction.version).to.be.equal(Transaction.CURRENT_VERSION);
+    var serialized = transaction.sign(new PrivateKey(testKey)).serialize(true);
+    expect(new Transaction(serialized).version).to.be.equal(Transaction.CURRENT_VERSION);
+  });
+
   describe('transaction creation test vector', function() {
     this.timeout(5000);
     var index = 0;
@@ -187,6 +225,8 @@ describe('Transaction', function() {
           var args = vector[i + 1];
           if (command === 'serialize') {
             transaction.serialize().should.equal(args);
+          } else if (command === 'version') {
+            transaction.version = args;
           } else {
             transaction[command].apply(transaction, args);
           }
@@ -1269,10 +1309,382 @@ describe('Transaction', function() {
       expect(copiedTransaction).to.be.an.instanceof(bitcore.Transaction);
     });
   });
+  describe('setExtraPayload', function() {
+
+    var testName = 'test';
+    var nameSize = Buffer.from(testName, 'utf8').length;
+    var validPayload = new SubTxRegisterPayload()
+      .setUserName(testName)
+      .setPubKeyIdFromPrivateKey(privateKey);
+
+    it('Should set payload and size', function() {
+      var transaction = Transaction()
+        .setType(Transaction.TYPES.TRANSACTION_SUBTX_REGISTER)
+        .setExtraPayload(validPayload);
+
+      // 2 bytes for payload version, 1 byte for username size, and 1 is empty signature
+      var expectedPayloadSize = 2 + 1 + nameSize + Payload.constants.PUBKEY_ID_SIZE + 1;
+      var payloadSize = transaction.getExtraPayloadSize();
+      expect(payloadSize).to.be.equal(expectedPayloadSize);
+      expect(transaction.extraPayload).to.be.deep.equal(validPayload);
+    });
+    it('Should be possible to serialize and deserialize special transaction', function() {
+      var transaction = Transaction()
+        .from(simpleUtxoWith1BTC)
+        .to(fromAddress, 10000)
+        .change(fromAddress)
+        .setType(RegisteredTransactionTypes.TRANSACTION_SUBTX_REGISTER)
+        .setExtraPayload(validPayload)
+        .sign(privateKey);
+
+      var serialized = transaction.serialize();
+      var deserialized = new Transaction(serialized);
+
+      expect(deserialized.extraPayload).to.be.deep.equal(validPayload);
+      expect(deserialized.type).to.be.equal(transaction.type);
+    });
+    it('Should not be possible to set extra payload if transaction type is not set', function () {
+      expect(function () {
+        var transaction = Transaction()
+          .from(simpleUtxoWith1BTC)
+          .to(fromAddress, 10000)
+          .change(fromAddress)
+          .setExtraPayload(validPayload)
+          .sign(privateKey);
+      }).to.throw('Transaction type is not set');
+    });
+    it('Should be possible to serialize and deserialize special transaction from object', function() {
+      var transaction = Transaction()
+        .from(simpleUtxoWith1BTC)
+        .to(fromAddress, 10000)
+        .change(fromAddress)
+        .setType(RegisteredTransactionTypes.TRANSACTION_SUBTX_REGISTER)
+        .setExtraPayload(validPayload)
+        .sign(privateKey);
+
+      var serialized = transaction.toObject();
+      var deserialized = new Transaction(serialized);
+
+      expect(deserialized.extraPayload).to.be.deep.equal(validPayload);
+      expect(deserialized.type).to.be.equal(transaction.type);
+    });
+    it('Should throw when trying to serialize special transaction without any payload', function () {
+      var transaction = Transaction()
+        .from(simpleUtxoWith1BTC)
+        .to(fromAddress, 10000)
+        .change(fromAddress)
+        .setType(Transaction.TYPES.TRANSACTION_SUBTX_REGISTER);
+
+      delete transaction.extraPayload;
+
+      expect(function () { transaction.sign(privateKey).serialize(); }).to.throw('Transaction payload size is invalid');
+    });
+    it('Should throw when extra payload is set, but special transaction type is not set', function () {
+      var transaction = Transaction()
+        .from(simpleUtxoWith1BTC)
+        .to(fromAddress, 10000)
+        .change(fromAddress)
+        .setType(Transaction.TYPES.TRANSACTION_SUBTX_REGISTER)
+        .setExtraPayload(validPayload)
+        .sign(privateKey);
+
+      delete transaction.type;
+
+      expect(function () { transaction.serialize(); }).to.throw('Special transaction type is not set');
+    });
+  });
+  describe('isSpecialTransaction', function() {
+    it('Should return true if a transaction is qualified to be a special transaction', function () {
+      var transaction = Transaction().setType(Transaction.TYPES.TRANSACTION_COINBASE);
+
+      expect(transaction.isSpecialTransaction()).to.be.true;
+    });
+    it('Should return false if a transaction type is not set', function() {
+      var transaction = Transaction();
+
+      expect(transaction.isSpecialTransaction()).to.be.false;
+    });
+  });
+  describe('setType', function () {
+    it('Should set type and create payload', function () {
+      var transaction = new Transaction().setType(Transaction.TYPES.TRANSACTION_SUBTX_REGISTER);
+
+      expect(transaction.type).to.be.equal(Transaction.TYPES.TRANSACTION_SUBTX_REGISTER);
+      expect(transaction.extraPayload).to.be.an.instanceOf(SubTxRegisterPayload);
+    });
+
+    it('Should not be able to set transaction type after it was already set', function () {
+      var transaction = new Transaction().setType(Transaction.TYPES.TRANSACTION_SUBTX_REGISTER);
+
+      expect(transaction.extraPayload).to.be.an.instanceOf(SubTxRegisterPayload);
+
+      expect(function() {
+        transaction.setType(Transaction.TYPES.TRANSACTION_NORMAL)
+      }).to.throw('Type is already set');
+    });
+
+    it('Should throw if transaction type is unknown', function () {
+      expect(function () {
+        var transaction = new Transaction().setType(123367);
+      }).to.throw('Unknown special transaction type');
+    });
+  });
+
+  describe('Special transaction vectors', function () {
+    var randomPubKeyId = new PrivateKey().toPublicKey()._getID().toString('hex');
+    var subTxRegisterHex = '03000800000140420f0000000000016a000000005d0100047465737488d9931ea73d60eaf7e5671efc0552b912911f2a412068b83466eaae3ac1f5c021d8d95559592c1e4c49142dc0da61e4912e124b4bca5ad5f5e282e24f6c0c1b1580545479d2c40ca088e54316c836221a143da5596c';
+    var username = 'test';
+    var expectedPubKeyId = new PrivateKey(privateKey).toPublicKey()._getID().toString('hex');
+    var privateKeyToSignTransaction = "cRbKdvygFSgwQQ61owyRuiNiknvWPN2zjjw7KS22q7kCwt2naVJf";
+
+    describe('Registration transaction', function () {
+
+      it('Should parse special transaction correctly', function () {
+        var parsedTransaction = new Transaction(subTxRegisterHex);
+
+        expect(parsedTransaction.type).to.be.equal(Transaction.TYPES.TRANSACTION_SUBTX_REGISTER);
+        expect(parsedTransaction.extraPayload.version).to.be.equal(1);
+        expect(parsedTransaction.extraPayload.userName).to.be.equal(username);
+        expect(parsedTransaction.extraPayload.pubKeyId.toString('hex')).to.be.equal(expectedPubKeyId);
+
+        expect(parsedTransaction.extraPayload.verifySignature(expectedPubKeyId)).to.be.true;
+        expect(parsedTransaction.extraPayload.verifySignature(randomPubKeyId)).to.be.false;
+      });
+
+      it('Should create valid hex', function () {
+        // In this case, funding will be 0.0001 and fee 0.00001
+        var transaction = new Transaction()
+          .setType(Transaction.TYPES.TRANSACTION_SUBTX_REGISTER)
+            .from(  {
+                "txid": "51c8cc5d5f375983eb37891d66da4656aa2617ef3f82073a34dc7a76331486ff",
+                "vout": 0,
+                "address": "yT9Lms2ATYLd3QLA4pVpg3mQ5KiHB9Dp1b",
+                "scriptPubKey": "210316dd99f0c194577d9f60ebfc889bdaf013f7bfd990acdf71b26d5eef14597c96ac",
+                "amount": 345.18076547,
+                "confirmations": 337,
+                "spendable": true,
+                "solvable": true,
+                "ps_rounds": -2
+              }
+            )
+          .addFundingOutput(10000)
+          .to("yT9Lms2ATYLd3QLA4pVpg3mQ5KiHB9Dp1b", 34518076547 - 11000);
+
+        transaction.extraPayload
+          .setUserName(username)
+          .setPubKeyIdFromPrivateKey(privateKey)
+          .sign(privateKey);
+
+        transaction.sign(new PrivateKey(privateKeyToSignTransaction));
+
+        expect(transaction.extraPayload.version).to.be.equal(1);
+        expect(transaction.extraPayload.userName).to.be.equal(username);
+        expect(transaction.extraPayload.pubKeyId.toString('hex')).to.be.equal(expectedPubKeyId);
+
+        expect(transaction.extraPayload.verifySignature(expectedPubKeyId)).to.be.true;
+        expect(transaction.extraPayload.verifySignature(randomPubKeyId)).to.be.false;
+      });
+
+    });
+
+    describe('Topup Transaction', function () {
+
+      it('Should parse the payload', function () {
+        var txHexString = '030009000001001bb70000000000016a000000002201003727f1b7e5aa90f32235d045fd4624bf453fe8e16ea5010ad923f70d2f88fd45';
+
+        var transaction = new Transaction(txHexString);
+
+        expect(transaction.extraPayload.version).to.be.equal(1);
+        expect(transaction.extraPayload.regTxHash).to.be.equal('45fd882f0df723d90a01a56ee1e83f45bf2446fd45d03522f390aae5b7f12737');
+
+        expect(transaction.outputs[0].satoshis).to.be.equal(12000000);
+      });
+
+    });
+
+    describe('Provider Register Transaction with collateral (protx register)', function () {
+
+      it('Should parse the payload', function () {
+
+        var transactionHex = '030001000126d3cb36b5360a23f5f4a2ea4c98d385c0c7a80788439f52a237717d799356a6000000006b483045022100b025cd823cf6b746e97a1e5657c1c6f150bc63530734b1c5dacef2cfad53a8ea022073d0801e18a082eaee70838f2cfc19c78b88b879af7d3e42023d61852ad289e701210222865251150a58f0f89602cb812046cc38c84d67e3dc74edb9061aaed19c2bdefeffffff0143c94fbb000000001976a9145cbfea4a74cfeb5f801f2cbaf38a9bac7ebebb0e88ac00000000fd120101000000000026d3cb36b5360a23f5f4a2ea4c98d385c0c7a80788439f52a237717d799356a60100000000000000000000000000ffffc38d008f4e1f8a94fb062049b841f716dcded8257a3632fb053c8273ec203d1ea62cbdb54e10618329e4ed93e99bc9c5ab2f4cb0055ad281f9ad0808a1dda6aedf12c41c53142828879b8a94fb062049b841f716dcded8257a3632fb053c00001976a914e4876df5735eaa10a761dca8d62a7a275349022188acbc1055e0331ea0ea63caf80e0a7f417e50df6469a97db1f4f1d81990316a5e0b412045323bca7defef188065a6b30fb3057e4978b4f914e4e8cc0324098ae60ff825693095b927cd9707fe10edbf8ef901fcbc63eb9a0e7cd6fed39d50a8cde1cdb4'
+        var tx = new Transaction(transactionHex);
+        expect(tx.extraPayload.version).to.be.equal(1);
+        expect(tx.extraPayload.type).to.be.equal(0);
+        expect(tx.extraPayload.mode).to.be.equal(0);
+
+        // 1.2.3.7 mapped to IPv6
+        expect(tx.extraPayload.ipAddress).to.be.equal('00000000000000000000ffffc38d008f');
+        expect(tx.extraPayload.port).to.be.equal(19999);
+        expect(tx.extraPayload.collateralIndex).to.be.equal(1);
+
+        expect(tx.extraPayload.keyIdOwner).to.be.equal('3c05fb32367a25d8dedc16f741b8492006fb948a');
+        expect(tx.extraPayload.keyIdOperator).to.be.equal('8273ec203d1ea62cbdb54e10618329e4ed93e99bc9c5ab2f4cb0055ad281f9ad0808a1dda6aedf12c41c53142828879b');
+        expect(tx.extraPayload.keyIdVoting).to.be.equal('3c05fb32367a25d8dedc16f741b8492006fb948a');
+
+        expect(new Script(tx.extraPayload.scriptPayout).toAddress('testnet').toString()).to.be.equal('yh9o9kPRK1s3YsuyCBe3DEjBit2RnzhgwH');
+
+        expect(tx.extraPayload.operatorReward).to.be.equal(0);
+        expect(tx.extraPayload.inputsHash).to.be.equal('bc1055e0331ea0ea63caf80e0a7f417e50df6469a97db1f4f1d81990316a5e0b');
+        expect(tx.extraPayload.payloadSig).to.be.equal('2045323bca7defef188065a6b30fb3057e4978b4f914e4e8cc0324098ae60ff825693095b927cd9707fe10edbf8ef901fcbc63eb9a0e7cd6fed39d50a8cde1cdb4');
+        // TODO: Add signature verification
+      });
+
+    });
+
+    describe('Provider Register Transaction without collateral (protx register_fund', function () {
+
+      it('Should parse the payload', function () {
+
+        var transactionHex = '030001000691a4ca0b4337033b9455ee8de300186ea3d5e85220a86cab736db24da0984b00000000006b483045022100ac6d36dc6414a3b8fc042ae962382ee63f2158105be01993fb0c8f8adc9b2bea02205d61e4580e41f14ed27cc30dbbb3ced8f7658cedde4a6737d3fd3160d69d2ae9012103963f01d5f7218f3bb081db486bdeadc14e5f45b39188a6db6ad354e42fbd3d3bfeffffffe6abd8056c9c9c90b473703fe639ce61f8bce6ce6d266c2c8e4ca0c8d0a89635010000006a4730440220233b5046e8a0385d9756a6f23207d92dae1df0769b3cc7a1aa131bf0b18dc15002203f03e7288cce3662077782ef3a883cb6588158ecd75a6a500fe99240d587cb540121027a2e02a35cf2d09a577e620592262858c0ebe337c173739d6132ff577145756afeffffff8af9ecaad625ad5676e52b54a161e14a4caf74d335b445a6ee5dc515940ccb5c010000006b483045022100ee509404e129b8e072fa65bc939a47440c97870b0c9ce8e3e2787d77107cf49b022042b7019268d8c5c712b51c7d6bd9fa24facf7774f19dc43a3f3d1a8c09611a6b012103003582fe26995073d9577edeb943c4777bdabe865ed9b5f96880854e99bb8db4feffffffb4210f43c9832a9b849495185c64b4aa8fc31209a855bef4234118eb57882ea1010000006b483045022100b96471e7f03e02438b61873d2765695e8a58fb8e1b71beffa351fabf4fd9536d022034c898c22e1f1aaf5f79392fef19559aefc1256f03f24ba68fa9a07a1759937d012103fc1189c93b429cb880ef012b60a43247836670549f5693687969fbeb105a409bfeffffff2b77c2f573fb4fa6f9833b0b0941aa59a7fee1b3b8a707d0ae996c8b09eae0a1010000006b483045022100fb281d18af8cd8808339e1a15444d39c315e510b4835de03eea8eb7498ac9d2902205c6d07c313e0bf865a985fa60c3075933d629326ef427d4912e4c28d3fae34380121039edb6f4b4f23ceb6d1ef76af2d2e3d7047189176c28230ef36480e94cf21488efeffffff1ba907e82be2c6e20cc4ca649c5a9b8996d78b4095184e458d33d5b9ea1a72ad010000006a4730440220546bfd471ad14cb4b34f6508900c961215f53e9cd3f9d5e9e855cf3d0a968e73022004e7fa9d3f8ad0d1b9bb6c886c2837d85c8255aa70da4725ba45701e3d84583c01210304382b7519bd746e6e0d3175ec9cc47759a2de160c66e1a9c7b3d1d28df0cf17feffffff022876ed6d000000001976a914ecddcb75d2acbd757d883f5130ade78d01d9547c88ac00e87648170000001976a914c274b44875713f1f7107b98c82ec14a3738e36d088ac00000000d101000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000ffffc38d8f314e1f140b2fea5ae1aa7e6b8ee68a11d272766339716318ece819b998a36a185e323a8749e55fd3dc2e259b741f8580fbd68cbd9f51d30f4d4da34fd5afc71859dca3cf10fbda595d9f40d00a7ea5cca2502a1c5bc47706688c424c041976a914c0ee80d8e78d59877e5ca6fa6d071f2bbf3037e688ac8e534b752f2a6ab10990caef7fe2ff552bbeadd9e28b99e47e21e69cd22fc78f00'
+        var tx = new Transaction(transactionHex);
+        expect(tx.extraPayload.version).to.be.equal(1);
+        expect(tx.extraPayload.type).to.be.equal(0);
+        expect(tx.extraPayload.mode).to.be.equal(0);
+
+        // 1.2.3.7 mapped to IPv6
+        expect(tx.extraPayload.ipAddress).to.be.equal('00000000000000000000ffffc38d8f31');
+        expect(tx.extraPayload.port).to.be.equal(19999);
+        expect(tx.extraPayload.collateralIndex).to.be.equal(1);
+
+        expect(tx.extraPayload.keyIdOwner).to.be.equal('637139637672d2118ae68e6b7eaae15aea2f0b14');
+        expect(tx.extraPayload.keyIdOperator).to.be.equal('18ece819b998a36a185e323a8749e55fd3dc2e259b741f8580fbd68cbd9f51d30f4d4da34fd5afc71859dca3cf10fbda');
+        expect(tx.extraPayload.keyIdVoting).to.be.equal('428c680677c45b1c2a50a2cca57e0ad0409f5d59');
+
+        expect(new Script(tx.extraPayload.scriptPayout).toAddress('testnet').toString()).to.be.equal('yduaJXyuHPfCGqqT9ap9n9fQTQ7ZrXNTeC');
+
+        expect(tx.extraPayload.operatorReward).to.be.equal(1100);
+        expect(tx.extraPayload.inputsHash).to.be.equal('8e534b752f2a6ab10990caef7fe2ff552bbeadd9e28b99e47e21e69cd22fc78f');
+        expect(tx.extraPayload.payloadSig).to.be.equal(undefined);
+        // TODO: Add signature verification
+      });
+
+    });
+
+    describe('Provider Update Registrar Transaction', function () {
+
+      it('Should parse the payload', function () {
+        var transactionHex = '03000300014f0fd120ac35429cdc616e470c53a52e032bba22304f8d1c54cc0af2040c3362000000006b483045022100dd412692cfc23f6b4e8853e5db29f314d9d309c4c6caa4be8bd325f74def1ad4022038eda085b8e13420e4d849e218307c97bf0873819d52968325e8f17500d534580121025f4156984bd7f24c63e63caae7b3e3ae0afb008258b9446bdc97fbd3316de3f5feffffff0194c74fbb000000001976a9140b6def979ca5d7ae8b7319d421736cab851dc7de88ac00000000e401004f0fd120ac35429cdc616e470c53a52e032bba22304f8d1c54cc0af2040c3362000018ece819b998a36a185e323a8749e55fd3dc2e259b741f8580fbd68cbd9f51d30f4d4da34fd5afc71859dca3cf10fbda8a94fb062049b841f716dcded8257a3632fb053c1976a914f25c59be48ee1c4fd3733ecf56f440659f1d6c5088acb309a51267451a7f52e79ef2391aa952e9a0284e8fd8db56cdcae3b49b7e6dab4120c838c08b9492c5039444cac11e466df3609c585010fab636de75c687bab9f6154d9a7c26d7b5384a147fc67ddb2e66e5f773af73dbf818109aec692ed364eafd';
+        var tx = new Transaction(transactionHex);
+
+        var actual = tx.extraPayload;
+        var expected = {
+          version: 1,
+          proTXHash: '62330c04f20acc541c8d4f3022ba2b032ea5530c476e61dc9c4235ac20d10f4f',
+          mode: 0,
+          pubKeyOperator: '18ece819b998a36a185e323a8749e55fd3dc2e259b741f8580fbd68cbd9f51d30f4d4da34fd5afc71859dca3cf10fbda',
+          keyIdVoting: '3c05fb32367a25d8dedc16f741b8492006fb948a',
+          scriptPayout: 'ac88506c1d9f6540f456cf3e73d34f1cee48be595cf214a976',
+          inputsHash: 'ab6d7e9bb4e3cacd56dbd88f4e28a0e952a91a39f29ee7527f1a456712a509b3',
+          payloadSig: '20c838c08b9492c5039444cac11e466df3609c585010fab636de75c687bab9f6154d9a7c26d7b5384a147fc67ddb2e66e5f773af73dbf818109aec692ed364eafd',
+        };
+
+        expect(JSON.stringify(actual)).to.be.deep.equal(JSON.stringify(expected));
+      });
+
+    });
+
+    describe('Provider Update Revoke Transaction', function () {
+
+      it('Should parse the payload', function () {
+        var transactionHex = '03000400016f8a813df204873df003d6efc44e1906eaf6180a762513b1c91252826ce05916000000006b4830450221009b50474beacd48b37340eb5715a5ebd92239e54595147b5c55018bc29f26bde302203f312cdd8009f3f03b9bb9a00074361974a40f5f5fafaf16ba4378cb72adcc4201210250a5b41488dec3d4116ae5733d18d03326050aebc3958118d647739ad1a5de24feffffff01b974ed6d000000001976a914f0ae84a7ea8a0efd48c155eeeaaed6eb64c2812188ac00000000a401006f8a813df204873df003d6efc44e1906eaf6180a762513b1c91252826ce05916010082cf248cf6b8ac6a3cdc826edae582ead20421659ed891f9d4953a540616fb4f05279584b3339ed2ba95711ad28b18ee2878c4a904f76ea4d103e1d739f22ff7e3b9b3db7d0c4a7e120abb4952c3574a18de34fa29828f9fe3f52bd0b1fac17acd04f7751967d782045ab655053653438f1dd1e14ba6adeb8351b78c9eb59bf4';
+        var tx = new Transaction(transactionHex);
+
+        var actual = tx.extraPayload;
+        var expected = {
+          version: 1,
+          proTXHash: '1659e06c825212c9b11325760a18f6ea06194ec4efd603f03d8704f23d818a6f',
+          reason: 1,
+          inputsHash: '82cf248cf6b8ac6a3cdc826edae582ead20421659ed891f9d4953a540616fb4f',
+          payloadSig: '05279584b3339ed2ba95711ad28b18ee2878c4a904f76ea4d103e1d739f22ff7e3b9b3db7d0c4a7e120abb4952c3574a18de34fa29828f9fe3f52bd0b1fac17acd04f7751967d782045ab655053653438f1dd1e14ba6adeb8351b78c9eb59bf4',
+        };
+
+        expect(JSON.stringify(actual)).to.be.deep.equal(JSON.stringify(expected));
+      });
+
+    });
+
+    describe('Provider Service Update Transaction ', function () {
+
+      it('Should parse the payload', function () {
+        var transactionHex = '03000200017b1100a3e33b86b1e9948a1091648b44ac2e819850e321bbbbd9a7825cf173c8000000006a473044022028f2ca816270068494686ed25ff64590c3a04f0b730d7e52e751adf640a9e4de02200379a4757738e83c24d25988c6cb4aed39120c985347a13e35401da41458ee0e012103a306d65010b0cb287de227a22b978973a0902174fe8bec61519d91183c97d9a1feffffff01e5f5b47f000000001976a914b45868066caf1c974bd7d0fb42c896cecdeccc9588ac00000000ce01007b1100a3e33b86b1e9948a1091648b44ac2e819850e321bbbbd9a7825cf173c800000000000000000000ffffc38d8f314e1f1976a9143e1f214c329557ae3711cb173bcf04d00762f3ff88ac3f7685789f3e6480ba6ed402285da0ed9cd0558265603fa8bad0eec0572cf1eb1746f9c46d654879d9afd67a439d4bc2ef7c1b26de2e59897fa83242d9bd819ff46c71d9e3d7aa1772f4003349b777140bedebded0a42efd64baf34f59c4a79c128df711c10a45505a0c2a94a5908f1642cbb56730f16b2cc2419a45890fb8ff';
+
+        var tx = new Transaction(transactionHex);
+        expect(tx.extraPayload.version).to.be.equal(1);
+        expect(tx.extraPayload.proTXHash).to.be.equal('c873f15c82a7d9bbbb21e35098812eac448b6491108a94e9b1863be3a300117b');
+        // 1.2.3.6 mapped to IPv6
+        expect(tx.extraPayload.ipAddress).to.be.equal('00000000000000000000ffffc38d8f31');
+        expect(tx.extraPayload.port).to.be.equal(19999);
+        expect(new Script(tx.extraPayload.scriptOperatorPayout).toAddress('testnet').toString()).to.be.equal('yRyv33x1PzwSTW3B2DV3XXRyr7Z5M2P4V7');
+        // TODO: Add signature verification
+      });
+
+    });
+
+    describe('Quorum Commitment Transaction ', function () {
+
+      it('Should parse the payload', function () {
+        var transactionHex = '03000600000000000000fd490101001e430400010001f2a1f356b9e086220d38754b1de1e4dcbd8b080c3fa0a62c2bd0961400000000320000000000000032000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
+
+        var tx = new Transaction(transactionHex);
+        expect(tx.extraPayload.version).to.be.equal(1);
+      });
+
+    });
+
+    describe('State transition', function () {
+      var regTxId = 'd0df4810f9899a71968b5e4147b52cab86ad9342a9806a514227514d8a160a3c';
+      var hashPrevSubTx = 'd0df4810f9899a71968b5e4147b52cab86ad9342a9806a514227514d8a160a3c';
+      var hashSTPacket = 'a0df4810f9899a71968b5e4147b52cab86ad9342a9806a514227514d8a160a3a';
+      var creditFee = 1000; // 0.00001 axe
+
+      it('Should parse and verify hex', function () {
+        var subTxTransitionTxHex = '03000c00000000000000ac01003c0a168a4d512742516a80a94293ad86ab2cb547415e8b96719a89f91048dfd03c0a168a4d512742516a80a94293ad86ab2cb547415e8b96719a89f91048dfd0e8030000000000003a0a168a4d512742516a80a94293ad86ab2cb547415e8b96719a89f91048dfa0411f3ae683b0a3ac3c3342ab30e646df344e8c3648902b48c5cb5f29c17f15a43ad93943b49c1f83a06321c6c434ae1c73d22ae83da3d39b9c5ce98a7947f5deab90';
+
+        var transaction = new Transaction(subTxTransitionTxHex);
+
+        expect(transaction.extraPayload.version).to.be.equal(1);
+        expect(transaction.extraPayload.regTxId).to.be.equal(regTxId);
+        expect(transaction.extraPayload.hashPrevSubTx).to.be.equal(hashPrevSubTx);
+        expect(transaction.extraPayload.hashSTPacket).to.be.equal(hashSTPacket);
+        expect(transaction.extraPayload.creditFee).to.be.equal(creditFee);
+
+        expect(transaction.extraPayload.verifySignature(expectedPubKeyId)).to.be.true;
+        expect(transaction.extraPayload.verifySignature(randomPubKeyId)).to.be.false;
+      });
+
+      it('Should create valid hex', function () {
+        var prevSubTx = "ef94b22076eddf91430f52910f13dce287e46a9d878164ce07292a7f7ccaeb70";
+
+        var transaction = new Transaction()
+          .setType(Transaction.TYPES.TRANSACTION_SUBTX_TRANSITION);
+
+        transaction.extraPayload
+          .setRegTxId(regTxId)
+          .setHashPrevSubTx(prevSubTx)
+          .setHashSTPacket(hashSTPacket)
+          .setCreditFee(creditFee)
+          .sign(privateKey);
+
+        var transactionHex = transaction.serialize();
+
+        expect(transaction.extraPayload.version).to.be.equal(1);
+        expect(transaction.extraPayload.regTxId).to.be.equal(regTxId);
+        expect(transaction.extraPayload.hashPrevSubTx).to.be.equal(prevSubTx);
+        expect(transaction.extraPayload.hashSTPacket).to.be.equal(hashSTPacket);
+        expect(transaction.extraPayload.creditFee).to.be.equal(creditFee);
+
+        expect(transaction.extraPayload.verifySignature(expectedPubKeyId)).to.be.true;
+        expect(transaction.extraPayload.verifySignature(randomPubKeyId)).to.be.false;
+      });
+
+    });
+
+  });
+
 });
 
 
-var tx_empty_hex = '01000000000000000000';
+var tx_empty_hex = '03000000000000000000';
 
 /* jshint maxlen: 1000 */
 var tx_1_hex = '01000000015884e5db9de218238671572340b207ee85b628074e7e467096c267266baf77a4000000006a473044022013fa3089327b50263029265572ae1b022a91d10ac80eb4f32f291c914533670b02200d8a5ed5f62634a7e1a0dc9188a3cc460a986267ae4d58faf50c79105431327501210223078d2942df62c45621d209fab84ea9a7a23346201b7727b9b45a29c4e76f5effffffff0150690f00000000001976a9147821c0a3768aa9d1a37e16cf76002aef5373f1a888ac00000000';
