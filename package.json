@@ -2,7 +2,7 @@
   "name": "@axerunners/axecore-lib",
   "description": "A pure and powerful JavaScript AXE library.",
   "author": "AXErunners <info@axerunners.com>",
-  "version": "0.16.8",
+  "version": "0.16.9",
   "main": "index.js",
   "scripts": {
     "lint": "eslint .",
