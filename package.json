@@ -2,7 +2,7 @@
   "name": "@axerunners/axecore-lib",
   "description": "A pure and powerful JavaScript AXE library.",
   "author": "AXErunners <info@axerunners.com>",
-  "version": "0.16.10",
+  "version": "0.17.0",
   "main": "index.js",
   "scripts": {
     "lint": "eslint .",
@@ -118,7 +118,7 @@
     "eslint": "^5.11.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.14.0",
-    "karma": "^3.1.1",
+    "karma": "^4.0.1",
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^2.2.0",
     "karma-detect-browsers": "^2.3.3",
