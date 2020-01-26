@@ -34,5 +34,5 @@ deploy:
     skip_cleanup: true
     script: npm publish
     on:
-      repo: dashevo/dashcore-lib
+      repo: axerunners/axecore-lib
       branch: master
