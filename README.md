@@ -84,6 +84,7 @@ You can also run just the Node.js tests with `npm run test:node`, just the brows
 * [Crypto](docs/crypto.md)
 * [Encoding](docs/encoding.md)
 * [Hierarchically-derived Private and Public Keys](docs/hierarchical.md)
+* [Mnemonic](docs/mnemonic.md)
 * [Networks](docs/networks.md)
 * [PrivateKey](docs/privatekey.md)
 * [PublicKey](docs/publickey.md)
