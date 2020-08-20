@@ -1,6 +1,6 @@
 {
   "name": "@axerunners/axecore-lib",
-  "version": "0.18.12",
+  "version": "0.18.13",
   "description": "A pure and powerful JavaScript Axe library.",
   "author": "Axe Core Group, Inc. <dev@axe.org>",
   "main": "index.js",
