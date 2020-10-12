@@ -227,7 +227,7 @@ describe('URI', function() {
   });
 
   it('should be case insensitive to protocol', function() {
-    var uri1 = new URI('DaSh:Xo4vyw1FtA88rYPYjbNT9kwhVokHHsSuPG');
+    var uri1 = new URI('aXe:Xo4vyw1FtA88rYPYjbNT9kwhVokHHsSuPG');
     var uri2 = new URI('axe:Xo4vyw1FtA88rYPYjbNT9kwhVokHHsSuPG');
 
     uri1.address.toString().should.equal(uri2.address.toString());
